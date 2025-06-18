@@ -1,0 +1,21 @@
+llama-index == 0.12.40
+fastapi
+uvicorn
+instructor
+openai
+pydantic
+python-dotenv
+llama-index-vector-stores-qdrant
+qdrant-client==1.14.1
+llama-cpp-python==0.2.24
+torch
+transformers==4.39.3
+sentence-transformers==2.7.0
+huggingface-hub==0.23.1
+llama-index-embeddings-huggingface
+fastembed
+python-multipart
+llama-index-llms-ollama
+llama-index-llms-groq
+llama-index-readers-file
+llama-index-readers-wikipedia
