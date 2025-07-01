@@ -3,10 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# C extensions
+
+# files generate
 .vscode/
 test.ipynb
-# C extensions
+*.csv
 *.so
+*.pdf
+*.json
 
 # Distribution / packaging
 .Python

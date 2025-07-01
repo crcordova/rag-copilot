@@ -19,3 +19,4 @@ llama-index-llms-ollama
 llama-index-llms-groq
 llama-index-readers-file
 llama-index-readers-wikipedia
+boto3
