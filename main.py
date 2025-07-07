@@ -16,10 +16,8 @@ from functions import save_score_to_csv, read_csv_from_s3, obtener_margen, ajust
 import os
 import shutil
 
-# Inicializar FastAPI
 app = FastAPI()
 
-# Configuración de directorios
 UPLOAD_DIR = "./uploads"
 PERSIST_DIR = "./storage"
 groq_api_key = os.getenv("GROQ_API_KEY")
@@ -35,7 +33,7 @@ if not qdrant_client.collection_exists(collection_name):
     qdrant_client.recreate_collection(
         collection_name=collection_name,
         vectors_config=VectorParams(
-            size=768,  # tamaño del embedding
+            size=768, 
             distance=Distance.COSINE
         )
     )
@@ -59,6 +57,9 @@ vector_store = QdrantVectorStore(client=qdrant_client, collection_name=collectio
 
 @app.post("/upload-pdf/")
 async def upload_pdf(file: UploadFile = File(...)):
+    '''
+    Carga archivo pdf, este es almacenado en local y vectorizado en Qdrant
+    '''
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Solo se permiten archivos PDF")
 
@@ -79,11 +80,6 @@ async def upload_pdf(file: UploadFile = File(...)):
             storage_context=storage_context
         )
 
-        # index = VectorStoreIndex.from_documents(
-        #     documents,
-        #     storage_context=storage_context
-        # )
-
         index.storage_context.persist(persist_dir=PERSIST_DIR)
 
         return JSONResponse(content={"status": "success", "message": f"Documento '{file.filename}' cargado y vectorizado"})
@@ -92,6 +88,9 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @app.get("/query")
 def query_documents(q: str = Query(..., description="Pregunta sobre los documentos")):
+    '''
+    Consulta a LLM RAG, pregunta sobre el contexto dado
+    '''
     try:
         # storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR)
         # index = load_index_from_storage(storage_context, vector_store=vector_store)
@@ -105,6 +104,7 @@ def query_documents(q: str = Query(..., description="Pregunta sobre los document
     
 @app.get("/score_cliente", response_model=FinancialScore)
 def score_cliente():
+    '''Dado el contexto (Informes financieros) LLM genera un scoring financiero'''
     try:
         storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR, vector_store=vector_store)
         index = load_index_from_storage(storage_context)
@@ -119,6 +119,9 @@ def score_cliente():
 
 @app.get("/pricing_inform")
 def calcular_pricing(commodity: str = Query(..., description="Nombre del commodity (e.g., Copper)")):
+    '''
+    Informe basado en el score financiero dado por el LLM, la prediccion de ventas y el precio del cobre (archivos deben existir en bucket S3)
+    '''
     try:
         df_score = read_csv_from_s3("scores.csv")
         df_demanda = read_csv_from_s3("prediction_sales.csv")
@@ -161,6 +164,9 @@ def calcular_pricing(commodity: str = Query(..., description="Nombre del commodi
     
 @app.get("/qdrant-status")
 def qdrant_status():
+    '''
+    obtiene informacion de status qdrant
+    '''
     try:
         collections = qdrant_client.get_collections()
         count = qdrant_client.count(collection_name=collection_name, exact=True).count
